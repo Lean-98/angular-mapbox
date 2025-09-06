@@ -1,5 +1,5 @@
 import { Component, ElementRef, ViewChild } from '@angular/core';
-import { Map, LngLat, Marker } from 'mapbox-gl';
+import { Map, LngLat, Marker } from 'maplibre-gl';
 
 interface MarkerAndColor {
   color: string;
@@ -8,34 +8,32 @@ interface MarkerAndColor {
 
 interface PlainMarker {
   color: string;
-  lngLat: number[]
+  lngLat: number[];
 }
-
 
 @Component({
   templateUrl: './markers-page.component.html',
-  styleUrls: ['./markers-page.component.css']
+  styleUrls: ['./markers-page.component.css'],
 })
 export class MarkersPageComponent {
-
   @ViewChild('map') divMap?: ElementRef;
 
   public markers: MarkerAndColor[] = [];
 
-
   public map?: Map;
-  public currentLngLat: LngLat = new LngLat(-74.10380784179445, 4.651165392795477);
-
+  public currentLngLat: LngLat = new LngLat(
+    -74.10380784179445,
+    4.651165392795477
+  );
 
   ngAfterViewInit(): void {
-
-    if ( !this.divMap ) throw 'El elemento HTML no fue encontrado';
+    if (!this.divMap) throw 'El elemento HTML no fue encontrado';
 
     this.map = new Map({
       container: this.divMap.nativeElement, // container ID
-      style: 'mapbox://styles/mapbox/streets-v12', // style URL
+      style: 'https://demotiles.maplibre.org/style.json', // style URL libre
       center: this.currentLngLat,
-      zoom: 13
+      zoom: 13,
     });
 
     this.readFromLocalStorage();
@@ -49,76 +47,71 @@ export class MarkersPageComponent {
     // })
     //   .setLngLat( this.currentLngLat )
     //   .addTo( this.map );
-
   }
 
   createMarker() {
-    if ( !this.map ) return;
+    if (!this.map) return;
 
-    const color = '#xxxxxx'.replace(/x/g, y=>(Math.random()*16|0).toString(16));
+    const color = '#xxxxxx'.replace(/x/g, (y) =>
+      ((Math.random() * 16) | 0).toString(16)
+    );
     const lngLat = this.map.getCenter();
 
-    this.addMarker( lngLat, color );
+    this.addMarker(lngLat, color);
   }
 
-
-  addMarker( lngLat: LngLat, color: string ) {
-    if ( !this.map ) return;
+  addMarker(lngLat: LngLat, color: string) {
+    if (!this.map) return;
 
     const marker = new Marker({
       color: color,
-      draggable: true
+      draggable: true,
     })
-      .setLngLat( lngLat )
-      .addTo( this.map );
+      .setLngLat(lngLat)
+      .addTo(this.map);
 
-    this.markers.push({ color, marker, });
+    this.markers.push({ color, marker });
     this.saveToLocalStorage();
 
-    marker.on('dragend', () => this.saveToLocalStorage() );
+    marker.on('dragend', () => this.saveToLocalStorage());
 
     // dragend
   }
 
-  deleteMarker( index: number ) {
+  deleteMarker(index: number) {
     this.markers[index].marker.remove();
-    this.markers.splice( index, 1 );
+    this.markers.splice(index, 1);
   }
 
-  flyTo( marker: Marker ) {
-
+  flyTo(marker: Marker) {
     this.map?.flyTo({
       zoom: 14,
-      center: marker.getLngLat()
+      center: marker.getLngLat(),
     });
-
   }
 
-
   saveToLocalStorage() {
-    const plainMarkers: PlainMarker[] = this.markers.map( ({ color, marker }) => {
-      return {
-        color,
-        lngLat: marker.getLngLat().toArray()
+    const plainMarkers: PlainMarker[] = this.markers.map(
+      ({ color, marker }) => {
+        return {
+          color,
+          lngLat: marker.getLngLat().toArray(),
+        };
       }
-    });
+    );
 
-    localStorage.setItem('plainMarkers', JSON.stringify( plainMarkers ));
-
+    localStorage.setItem('plainMarkers', JSON.stringify(plainMarkers));
   }
 
   readFromLocalStorage() {
     const plainMarkersString = localStorage.getItem('plainMarkers') ?? '[]';
-    const plainMarkers: PlainMarker[] = JSON.parse( plainMarkersString ); //! OJO!
+    const plainMarkers: PlainMarker[] = JSON.parse(plainMarkersString); //! OJO!
 
-    plainMarkers.forEach( ({ color, lngLat }) => {
-      const [ lng, lat ] = lngLat;
-      const coords = new LngLat( lng, lat );
+    plainMarkers.forEach(({ color, lngLat }) => {
+      const [lng, lat] = lngLat;
+      const coords = new LngLat(lng, lat);
 
-      this.addMarker( coords, color );
-    })
-
+      this.addMarker(coords, color);
+    });
   }
-
-
 }

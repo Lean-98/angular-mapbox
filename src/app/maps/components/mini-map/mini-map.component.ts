@@ -1,33 +1,33 @@
-import { Component, ElementRef, Input, ViewChild } from '@angular/core';
-import { Map, Marker } from 'mapbox-gl';
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  Input,
+  ViewChild,
+} from '@angular/core';
+import { Map, Marker } from 'maplibre-gl';
 
 @Component({
   selector: 'map-mini-map',
   templateUrl: './mini-map.component.html',
-  styleUrls: ['./mini-map.component.css']
+  styleUrls: ['./mini-map.component.css'],
 })
 export class MiniMapComponent {
-
   @Input() lngLat?: [number, number];
   @ViewChild('map') divMap?: ElementRef;
 
-
   ngAfterViewInit() {
-    if( !this.divMap?.nativeElement ) throw "Map Div not found";
-    if( !this.lngLat ) throw "LngLat can't be null";
+    if (!this.divMap?.nativeElement) throw 'Map Div not found';
+    if (!this.lngLat) throw "LngLat can't be null";
 
     const map = new Map({
       container: this.divMap.nativeElement, // container ID
-      style: 'mapbox://styles/mapbox/streets-v12', // style URL
+      style: 'https://demotiles.maplibre.org/style.json', // style URL libre
       center: this.lngLat,
       zoom: 15,
-      interactive: false
+      interactive: false,
     });
 
-    new Marker()
-      .setLngLat( this.lngLat )
-      .addTo( map )
-
+    new Marker().setLngLat(this.lngLat).addTo(map);
   }
-
 }
